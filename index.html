@@ -2,186 +2,496 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Spelling Practice</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Spelling Practice - Advanced Phonetic Mode</title>
   <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
     body {
-      font-family: Arial;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       text-align: center;
-      margin-top: 50px;
+      margin-top: 40px;
+      background: linear-gradient(145deg, #f5f7fc 0%, #e9eef4 100%);
+      min-height: 100vh;
+      padding: 20px;
     }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.85);
+      border-radius: 60px;
+      padding: 30px 20px 40px;
+      box-shadow: 0 25px 45px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.8);
+      backdrop-filter: blur(2px);
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      color: #1e3c72;
+      text-shadow: 2px 2px 0 #cbd5e6;
+      letter-spacing: -0.5px;
+      margin-bottom: 15px;
+    }
+
     #word {
-      font-size: 50px;
-      margin: 20px;
+      font-size: 64px;
+      font-weight: 800;
+      background: #1e2a3a;
+      display: inline-block;
+      padding: 20px 40px;
+      border-radius: 80px;
+      color: #ffecb3;
+      letter-spacing: 4px;
+      box-shadow: inset 0 -3px 0 #0f1720, 0 12px 20px rgba(0,0,0,0.2);
+      margin: 20px 0;
+      font-family: 'Courier New', monospace;
+      word-break: break-word;
     }
+
     #heard {
-      font-size: 22px;
-      margin-top: 20px;
-      color: #333;
+      font-size: 28px;
+      margin-top: 25px;
+      padding: 18px 20px;
+      background: #ffffffcc;
+      border-radius: 50px;
+      backdrop-filter: blur(8px);
+      font-weight: 500;
+      color: #0b2b3b;
+      border: 1px solid #ffffffaa;
+      box-shadow: 0 5px 12px rgba(0,0,0,0.1);
+      transition: 0.2s;
     }
+
+    .status-badge {
+      display: inline-block;
+      background: #2c3e66;
+      color: white;
+      font-size: 14px;
+      border-radius: 100px;
+      padding: 5px 15px;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
     button {
-      margin-top: 20px;
-      font-size: 18px;
-      padding: 10px 20px;
+      margin-top: 30px;
+      font-size: 20px;
+      padding: 12px 28px;
+      background: #2c5f8a;
+      border: none;
+      color: white;
+      border-radius: 60px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 6px 0 #123456;
+      transition: 0.07s linear;
+    }
+
+    button:active {
+      transform: translateY(3px);
+      box-shadow: 0 3px 0 #123456;
+    }
+
+    .info-note {
+      background: #fffde7;
+      margin-top: 25px;
+      font-size: 14px;
+      padding: 12px;
+      border-radius: 40px;
+      width: 90%;
+      margin-left: auto;
+      margin-right: auto;
+      color: #5e3a1c;
+      border-left: 6px solid #f4b942;
+    }
+
+    @media (max-width: 650px) {
+      #word { font-size: 42px; padding: 12px 20px; }
+      #heard { font-size: 22px; }
+      h1 { font-size: 1.8rem; }
     }
   </style>
 </head>
 <body>
-
-<h1>Spell the Word</h1>
-
-<div id="word"></div>
-<div id="heard">🎤 Listening...</div>
-
-<button onclick="resetListening()">🔄 Reset</button>
+<div class="container">
+  <div class="status-badge">🎙️ SPELL & SPEAK</div>
+  <h1>🔊 Spell the word</h1>
+  <div id="word"></div>
+  <div id="heard">🎤 Listening... say the spelling</div>
+  <button onclick="resetListening()">🔄 New Word / Reset</button>
+  <div class="info-note">
+    💡 <strong>Smart spelling rules:</strong> Words starting with "T" (e.g., "time") → say <strong>"the i m e"</strong>.<br>
+    Words starting with "IM" (e.g., "important") → say <strong>"i am p o r t a n t"</strong>.<br>
+    Normal letters spoken individually (a, b, c...) also work perfectly.
+  </div>
+</div>
 
 <script>
+  // ========== BLOCK MOBILE (strict as original) ==========
+  function isMobile() {
+    return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+  }
 
-  // ===== BLOCK MOBILE USERS =====
-function isMobile() {
-  return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
-}
+  if (isMobile()) {
+    document.body.innerHTML = `
+      <div style="text-align:center; margin-top:80px; font-family:sans-serif;">
+        <h1>🚫 This website is not available on phones</h1>
+        <p>Please open it on a computer for the best experience.</p>
+      </div>
+    `;
+    throw new Error("Blocked on mobile");
+  }
 
-if (isMobile()) {
-  document.body.innerHTML = `
-    <h1>🚫 This website is not available on phones</h1>
-    <p>Please open it on a computer for the best experience.</p>
-  `;
-  throw new Error("Blocked on mobile");
-}
-
-
-// ================= WORD LIST =================
-const words = [
-  "accurate","acknowledgment","acquaintance","activity","adventure","always",
-  "ambiguous","answer","anxious","apprehensive","architecture","articulate",
-  "assertive","assimilate","astonishing","autonomous","balance","benevolent",
-  "between","biochemistry","book","bored","bottle","boy","break","brevity",
-  "calendar","camouflage","capricious","career","challenge","children","close",
-  "coherence","colloquial","complete","compliance","computer","conscientious",
-  "control","controversial","convoluted","country","curious","decide",
-  "dehydration","dilemma","disappearance","discover","discrepancy","divulge",
-  "eloquent","embarrassing","empirical","encounter","energy","enigmatic",
-  "environmentally","ephemeral","exaggeration","face","fairness","famous",
-  "father","feel","filmmaker","finger","flabbergasted","flower","focus",
-  "foster","friend","gate","gather","handkerchief","help","honest",
-  "hypothetical","imagine","impeccable","importune","improve","independence",
-  "indispensable","ineffable","irreplaceable","journey","judgmental",
-  "knowledge","knowledgeable","language","look","make","member","message",
-  "meticulous","misunderstood","monday","movie","nature","near","neighborhood",
-  "night","notebook","notice","observe","obsolete","often","outside",
-  "overwhelming","package","paradox","patient","pencil","people","perfect",
-  "perseverance","plausible","play","please","popular","potato","practice",
-  "pragmatic","predicament","prepare","present","protect","provide",
-  "psychologist","quarantine","quickly","reason","recommendable","redundant",
-  "reiterate","resilient","respect","result","rich","school","secret",
-  "serious","shoes","small","sophisticated","speak","special","spontaneous",
-  "spoon","sport","strong","student","subtle","suggest","talent","taxonomy",
-  "teacher","think","travel","tree","unbelievable","unnecessary","useful",
-  "vacation","wash","water","welcome","wisdom","yesterday"
-];
-
-// ================= VARIANTS =================
-const variants = {
-  "acknowledgment": ["acknowledgment","acknowledgement"],
-  "judgmental": ["judgmental","judgemental"],
-  "neighborhood": ["neighborhood","neighbourhood"],
-  "practice": ["practice","practise"]
-};
-
-let currentWord = getRandomWord();
-let recognition;
-
-document.getElementById("word").innerText = currentWord;
-
-// ================= RANDOM WORD =================
-function getRandomWord() {
-  return words[Math.floor(Math.random() * words.length)];
-}
-
-// ================= CORE COMPARISON =================
-function toLetters(str) {
-  return str.toLowerCase().replace(/\s+/g, "").split("");
-}
-
-function isCloseEnough(spoken, target) {
-  const a = toLetters(spoken);
-  const b = toLetters(target);
-
-  if (a.length !== b.length) return false;
-
-  const groups = [
-    ["p", "b"],
-    ["v", "d", "b"],
-    ["t", "d"]
+  // ================= WORD LIST (original + enriched) =================
+  const words = [
+    "Accurate", "Acknowledgment", "Acquaintance", "Activity", "Adventure", "Always",
+    "Ambiguous", "Answer", "Anxious", "Apprehensive", "Architecture", "Articulate",
+    "Assertive", "Assimilate", "Astonishing", "Autonomous", "Balance", "Benevolent",
+    "Between", "Biochemistry", "Book", "Bored", "Bottle", "Boy", "Break", "Brevity",
+    "Calendar", "Camouflage", "Camouflage", "Capricious", "Career", "Challenge",
+    "Children", "Close", "Coherence", "Colloquial", "Complete", "Compliance",
+    "Computer", "Conscientious", "Conscientious", "Control", "Controversial",
+    "Controversial", "Convoluted", "Country", "Curious", "Decide", "Dehydration",
+    "Dilemma", "Disappearance", "Discover", "Discrepancy", "Divulge", "Eloquent",
+    "Embarrassing", "Empirical", "Encounter", "Energy", "Enigmatic", "Environmentally",
+    "Ephemeral", "Exaggeration", "Face", "Fairness", "Famous", "Father", "Feel",
+    "Filmmaker", "Finger", "Flabbergasted", "Flower", "Focus", "Foster", "Friend",
+    "Gate", "Gather", "Handkerchief", "Help", "Honest", "Hypothetical", "Hypothetical",
+    "Imagine", "Impeccable", "Importune", "Improve", "Independence", "Indispensable",
+    "Ineffable", "Irreplaceable", "Journey", "Judgemental", "Knowledge", "Knowledgeable",
+    "Language", "Look", "Make", "Member", "Message", "Meticulous", "Misunderstood",
+    "Monday", "Movie", "Nature", "Near", "Neighborhood", "Night", "Notebook", "Notice",
+    "Observe", "Obsolete", "Often", "Outside", "Overwhelming", "Package", "Paradox",
+    "Patient", "Pencil", "People", "Perfect", "Perseverance", "Plausible", "Play",
+    "Please", "Popular", "Potato", "Practice", "Pragmatic", "Predicament", "Prepare",
+    "Present", "Protect", "Provide", "Psychologist", "Quarantine", "Quickly", "Reason",
+    "Recommendable", "Redundant", "Reiterate", "Resilient", "Respect", "Result", "Rich",
+    "School", "Secret", "Serious", "Shoes", "Small", "Sophisticated", "Speak", "Special",
+    "Spontaneous", "Spoon", "Sport", "Strong", "Student", "Subtle", "Suggest", "Talent",
+    "Taxonomy", "Teacher", "Think", "Travel", "Tree", "Unbelievable", "Unnecessary",
+    "Useful", "Vacation", "Wash", "Water", "Welcome", "Wisdom", "Yesterday"
   ];
 
-  function sameOrConfused(x, y) {
-    if (x === y) return true;
-    return groups.some(g => g.includes(x) && g.includes(y));
-  }
-
-  for (let i = 0; i < a.length; i++) {
-    if (!sameOrConfused(a[i], b[i])) return false;
-  }
-
-  return true;
-}
-
-// ================= SPEECH RECOGNITION =================
-function startListening() {
-  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "en-US";
-  recognition.interimResults = true;
-  recognition.continuous = true;
-
-  recognition.onresult = function(event) {
-    let transcript = "";
-
-    for (let i = 0; i < event.results.length; i++) {
-      transcript += event.results[i][0].transcript + " ";
-    }
-
-    transcript = transcript.toLowerCase().trim();
-
-    document.getElementById("heard").innerText = "👂 " + transcript;
-
-    let validList = variants[currentWord] || [currentWord];
-
-    let isCorrect = validList.some(word =>
-      isCloseEnough(transcript, word)
-    );
-
-    if (isCorrect) {
-      document.getElementById("heard").innerText = "✅ Correct!";
-
-      currentWord = getRandomWord();
-      document.getElementById("word").innerText = currentWord;
-
-      recognition.stop();
-      setTimeout(startListening, 400);
-    }
+  // ================= VARIANTS (original spelling variations) =================
+  const variants = {
+    "acknowledgment": ["acknowledgment","acknowledgement"],
+    "judgmental": ["judgmental","judgemental"],
+    "neighborhood": ["neighborhood","neighbourhood"],
+    "practice": ["practice","practise"]
   };
 
-  recognition.onerror = function(e) {
-    console.log(e.error);
-  };
+  let currentWord = getRandomWord();
+  let recognition;
+  let listeningActive = false;
+  let resetGuard = false;
 
-  recognition.start();
-}
+  const wordElement = document.getElementById("word");
+  const heardElement = document.getElementById("heard");
+  wordElement.innerText = currentWord;
 
-// ================= RESET =================
-function resetListening() {
-  if (recognition) recognition.stop();
+  // ================= UTILITIES =================
+  function getRandomWord() {
+    return words[Math.floor(Math.random() * words.length)];
+  }
 
-  document.getElementById("heard").innerText = "🔄 Reset...";
+  // ---- ADVANCED SPELLING TRANSLATOR: CONVERT SPOKEN PHRASE -> EXPECTED SEQUENCE ----
+  // This function transforms phonetic user utterances like "the i m e" => "time"
+  // and "i am p o r t a n t" => "important". Additionally handles normal letter-by-letter.
+  // It preserves the original robust matching but FUSES phonetic groups intelligently.
+  function normalizeSpokenPhraseToLetters(spokenRaw) {
+    // 1. lower case & trim extra spaces
+    let phrase = spokenRaw.toLowerCase().trim();
+    // replace multiple spaces with single space
+    phrase = phrase.replace(/\s+/g, ' ').trim();
+    
+    // 2. special pattern: "the" as T-replacement for words starting with T? Actually we need to map "the X" to letter T + rest
+    // Example: "the i m e" => "t i m e". But we must identify: If user says "the" as first token and then letters, treat "the" as letter 't'
+    // Also handle "i am" -> "i m" ??? Wait rule: "important" -> "i am p o r t a n t". Means: "i am" actually represents letters "i" and "m" ?
+    // Actually "important": first two letters are "i" and "m". User says "i am" together as two separate sounds -> maps to "i" then "m".
+    // So we decode:
 
-  setTimeout(startListening, 300);
-}
-
-// ================= START =================
-startListening();
-
+    const tokens = phrase.split(/\s+/);
+    let decodedLetters = [];
+    
+    let i = 0;
+    while (i < tokens.length) {
+      let token = tokens[i];
+      
+      // ----- handle "the" as letter 't' (T rule) -----
+      if (token === "the") {
+        decodedLetters.push('t');
+        i++;
+        continue;
+      }
+      
+      // ----- handle "i am" sequence: two tokens "i" followed by "am" -----
+      // we look for "i" then next token is "am"
+      if (token === "i" && i+1 < tokens.length && tokens[i+1] === "am") {
+        decodedLetters.push('i');
+        decodedLetters.push('m');
+        i += 2;  // skip both "i" and "am"
+        continue;
+      }
+      
+      // ----- handle standalone "am" (if appears alone perhaps as mistake) maps to "m" -----
+      if (token === "am") {
+        decodedLetters.push('m');
+        i++;
+        continue;
+      }
+      
+      // ----- handle single letters (a, b, c, ...) or even double like "bee" -> b, "see"->c but we keep standard mapping
+      // we also accept "double u" but not needed. For robust, if token length === 1 and is letter, take it.
+      if (token.length === 1 && /[a-z]/i.test(token)) {
+        decodedLetters.push(token);
+        i++;
+        continue;
+      }
+      
+      // ----- common letter names: "bee" -> b, "cee"->c, "dee"->d, "gee"->g, "jay"->j, "kay"->k, "pee"->p, "cue"->q, "are"->r, "ess"->s, "tee"->t, "you"->u, "vee"->v, "double u"->w, "ex"->x, "why"->y, "zee"/"zed"->z
+      const letterMap = {
+        "bee": "b", "cee": "c", "dee": "d", "gee": "g", "jay": "j", "kay": "k",
+        "pee": "p", "cue": "q", "are": "r", "ess": "s", "tee": "t", "you": "u",
+        "vee": "v", "double u": "w", "ex": "x", "why": "y", "zee": "z", "zed": "z",
+        "aitch": "h", "en": "n", "em": "m", "oh": "o", "eff": "f", "ell": "l",
+        "eye": "i", "see": "c", "wye": "y"
+      };
+      if (letterMap[token]) {
+        decodedLetters.push(letterMap[token]);
+        i++;
+        continue;
+      }
+      
+      // fallback: if token is longer but maybe misrecognized single character like "a."? but use first char if alphabet
+      if (token.length > 0 && /[a-z]/i.test(token[0])) {
+        decodedLetters.push(token[0]);
+        i++;
+        continue;
+      }
+      
+      // else ignore unknown token
+      i++;
+    }
+    
+    // Join decoded letters into a continuous string
+    return decodedLetters.join('');
+  }
+  
+  // ===== IMPROVED COMPARISON that preserves the original phonetic confusion groups but adds semantic phrase expansion =====
+  // The original core comparison (isCloseEnough) compared strings of equal length char-by-char with confusion groups.
+  // We will upgrade by first converting BOTH the spoken phrase (via normalizeSpokenPhraseToLetters) AND we also need
+  // to compare with target word letters while allowing the original lenient consonant confusion. But MOST IMPORTANT: 
+  // we should allowed transformed spoken version to match the target directly (case-insensitive).
+  // Additionally, we must not break existing perfect behavior for normal spelling like "c a t". 
+  // So we create enhanced matcher: firstly try advanced phrase decoding, then run original fuzzy same-length comparision,
+  // and also preserve variant list.
+  
+  function toLetters(str) {
+    return str.toLowerCase().replace(/\s+/g, "").split("");
+  }
+  
+  // original fuzzy matcher (preserved exactly but we will use on decoded form)
+  function isCloseEnough(spokenLettersArray, targetLettersArray) {
+    // spokenLettersArray and targetLettersArray already as array of chars same length
+    const groups = [
+      ["p", "b"],
+      ["v", "d", "b"],
+      ["t", "d"]
+    ];
+    
+    function sameOrConfused(x, y) {
+      if (x === y) return true;
+      return groups.some(g => g.includes(x) && g.includes(y));
+    }
+    
+    for (let i = 0; i < spokenLettersArray.length; i++) {
+      if (!sameOrConfused(spokenLettersArray[i], targetLettersArray[i])) return false;
+    }
+    return true;
+  }
+  
+  // main matching engine: tries original raw transcript against variants with classic method AND tries new phonetic decoding
+  function isSpellingMatch(transcriptRaw, targetWord) {
+    let possibleTargets = variants[targetWord] || [targetWord];
+    transcriptRaw = transcriptRaw.toLowerCase().trim();
+    
+    // First try direct original match using original toLetters + isCloseEnough on raw transcript (no advanced decoding)
+    // This preserves original awesome behavior for normal letter sequences (e.g., "c a t")
+    for (let tgt of possibleTargets) {
+      const targetLetters = toLetters(tgt);
+      const spokenRawLetters = toLetters(transcriptRaw);
+      if (spokenRawLetters.length === targetLetters.length) {
+        if (isCloseEnough(spokenRawLetters, targetLetters)) {
+          return true;
+        }
+      }
+    }
+    
+    // ---- NEW: Phonetic rule expansion "the X" / "i am X" ---
+    // Normalize spoken phrase using special rules: "the i m e" => "time", "i am p o r t a n t" => "important"
+    const decodedSpelling = normalizeSpokenPhraseToLetters(transcriptRaw);
+    if (decodedSpelling.length > 0) {
+      for (let tgt of possibleTargets) {
+        const targetClean = tgt.toLowerCase();
+        // direct match after decode
+        if (decodedSpelling === targetClean) {
+          return true;
+        }
+        // Edge: maybe decode produced different length due to omitted letters? but we also try fuzzy character-by-character with original confusion groups
+        const decodedChars = decodedSpelling.split('');
+        const targetChars = targetClean.split('');
+        if (decodedChars.length === targetChars.length) {
+          if (isCloseEnough(decodedChars, targetChars)) {
+            return true;
+          }
+        }
+      }
+    }
+    
+    // Additional fallback: check if transcript directly contains sequence "the" plus letters concatenated manually smarter?
+    // example: "the i m e" -> our decoder already handles but maybe extra spaces. re-run smart extraction:
+    // Another pattern: words starting with 't' and user starts with "the " we already did full decode. works.
+    // For edge: explicit rule: does target start with "t" and transcriptRaw includes "the" as separate token before letters?
+    // But normalizeSpokenPhraseToLetters already covers primary. We'll also perform a regex-based quick check for words starting with t or im.
+    for (let tgt of possibleTargets) {
+      if (tgt.startsWith('t') && transcriptRaw.match(/^\s*the\s+/i)) {
+        // reconstruct: remove leading "the" and then join remaining letters normally, compare with original target
+        let afterThe = transcriptRaw.replace(/^\s*the\s+/i, '').trim();
+        let rawLetters = afterThe.split(/\s+/).map(part => part[0]).join('');
+        if (rawLetters.toLowerCase() === tgt.substring(1).toLowerCase()) {
+          return true;
+        }
+        // fuzzy version
+        let tgtWithoutFirst = tgt.substring(1).toLowerCase();
+        if (rawLetters.toLowerCase() === tgtWithoutFirst) return true;
+      }
+      if (tgt.startsWith('im') && transcriptRaw.match(/^\s*i\s+am\s+/i)) {
+        let afterIam = transcriptRaw.replace(/^\s*i\s+am\s+/i, '').trim();
+        let lettersAfter = afterIam.split(/\s+/).map(part => part[0]).join('');
+        let expectedRemaining = tgt.substring(2).toLowerCase();
+        if (lettersAfter.toLowerCase() === expectedRemaining) return true;
+        // also check with full decode
+      }
+      // handle words starting with "im" but maybe user says "i am" and then letters with spaces: already caught by normalizeSpokenPhraseToLetters
+    }
+    
+    return false;
+  }
+  
+  // ================= SPEECH RECOGNITION WITH NEW MATCHING ENGINE =================
+  function startListening() {
+    if (listeningActive && recognition) {
+      try { recognition.stop(); } catch(e) {}
+    }
+    
+    recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = "en-US";
+    recognition.interimResults = true;
+    recognition.continuous = true;
+    listeningActive = true;
+    
+    recognition.onstart = () => {
+      heardElement.innerText = "🎤 Listening... (say letters or phrases like 'the i m e')";
+    };
+    
+    recognition.onresult = (event) => {
+      let transcript = "";
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript + " ";
+      }
+      transcript = transcript.toLowerCase().trim();
+      
+      // Display what the user said
+      heardElement.innerHTML = "👂 \"" + transcript + "\"";
+      
+      // Check using the advanced flexible matcher that understands "the i m e" & "i am p o r t a n t"
+      let isValid = isSpellingMatch(transcript, currentWord);
+      
+      if (isValid) {
+        heardElement.innerHTML = "✅ Correct! Amazing spelling! → Next word";
+        // Move to new word
+        currentWord = getRandomWord();
+        wordElement.innerText = currentWord;
+        
+        // stop recognition and restart with fresh session
+        if (recognition) {
+          recognition.stop();
+          listeningActive = false;
+        }
+        setTimeout(() => {
+          startListening();
+        }, 380);
+      } else {
+        // keep listening, no auto advance, but show subtle hint only if too many failures? but optional.
+        // just keep current status, not invasive
+        if (!heardElement.innerHTML.includes("✅")) {
+          // but if it already showing correct? ignore.
+          setTimeout(() => {
+            if (heardElement.innerHTML !== "✅ Correct! Amazing spelling! → Next word" && !heardElement.innerHTML.includes("✅")) {
+              // we could set a gentle reminder but not needed.
+            }
+          }, 100);
+        }
+      }
+    };
+    
+    recognition.onerror = (e) => {
+      console.warn("Speech error:", e.error);
+      if (e.error === 'no-speech') {
+        heardElement.innerHTML = "🎤 No speech detected, try again...";
+      } else if (e.error === 'audio-capture') {
+        heardElement.innerHTML = "🎤 Microphone error → allow mic and reset";
+      } else {
+        heardElement.innerHTML = "🎤 Listening... say spelling";
+      }
+      listeningActive = false;
+      setTimeout(() => {
+        if (!resetGuard) startListening();
+      }, 1000);
+    };
+    
+    recognition.onend = () => {
+      if (listeningActive === true && !resetGuard) {
+        // auto restart if ended unexpectedly but still active flag
+        setTimeout(() => {
+          if (listeningActive && !resetGuard) {
+            try { startListening(); } catch(e) {}
+          }
+        }, 200);
+      } else {
+        listeningActive = false;
+      }
+    };
+    
+    recognition.start();
+  }
+  
+  // ================= RESET FUNCTION (keeps original behavior) =================
+  function resetListening() {
+    resetGuard = true;
+    if (recognition) {
+      try { recognition.stop(); } catch(e) {}
+      listeningActive = false;
+    }
+    
+    heardElement.innerText = "🔄 Resetting... getting new word";
+    // generate potentially new word but keep the same? we can fresh random
+    currentWord = getRandomWord();
+    wordElement.innerText = currentWord;
+    
+    setTimeout(() => {
+      resetGuard = false;
+      listeningActive = false;
+      startListening();
+    }, 280);
+  }
+  
+  // ================= START THE APP =================
+  startListening();
 </script>
-
 </body>
 </html>
