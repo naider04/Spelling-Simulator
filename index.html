@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Spelling Practice - Advanced Phonetic Mode</title>
@@ -128,33 +125,25 @@
   }
 
   // ===== CHECK FOR FIREFOX / BROWSER SUPPORT =====
-// ===== CHECK FOR CHROME ONLY =====
-  const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-  const isEdge = /Edg/.test(navigator.userAgent);
-  const isFirefox = /Firefox/.test(navigator.userAgent);
-  const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-  
-  if (!isChrome || isEdge) {
-    let browserName = "Your browser";
-    if (isEdge) browserName = "Microsoft Edge";
-    if (isFirefox) browserName = "Firefox";
-    if (isSafari) browserName = "Safari";
-    
+  if (!(window.SpeechRecognition || window.webkitSpeechRecognition)) {
     document.body.innerHTML = `
       <div style="text-align:center; margin-top:80px; font-family:system-ui, sans-serif; max-width:600px; margin-left:auto; margin-right:auto; padding:20px;">
         <div style="background:#fff3e0; border-radius:30px; padding:40px 20px; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
-          <h1 style="color:#d32f2f;">🌐 Google Chrome Required</h1>
-          <p style="font-size:18px; margin:20px 0;">This spelling app works best with <strong>Google Chrome</strong>.</p>
-          <p style="font-size:16px;">${browserName} doesn't fully support the voice recognition feature.</p>
-          <div style="margin:30px 0;">
-            <a href="https://www.google.com/chrome/" target="_blank" style="display:inline-block; background:#2c5f8a; color:white; padding:12px 28px; text-decoration:none; border-radius:50px; font-weight:bold;">Download Chrome</a>
-          </div>
-          <p style="font-size:14px; color:#666;">After installing Chrome, open this page again for the full experience.</p>
-          <button onclick="location.reload()" style="margin-top:20px; padding:8px 20px; background:#ccc; border:none; border-radius:50px; cursor:pointer;">I'm using Chrome, reload</button>
+          <h1 style="color:#d32f2f;">🌐 Browser Not Supported</h1>
+          <p style="font-size:18px; margin:20px 0;">Your browser (Firefox) does not support voice recognition for this app.</p>
+          <p style="font-size:16px; margin:20px 0;">Please use one of these browsers instead:</p>
+          <ul style="text-align:left; display:inline-block; margin:20px auto;">
+            <li>✅ <strong>Google Chrome</strong></li>
+            <li>✅ <strong>Microsoft Edge</strong></li>
+            <li>✅ <strong>Safari</strong> (Mac/iPad)</li>
+            <li>✅ <strong>Opera</strong></li>
+          </ul>
+          <p style="margin-top:30px; font-size:14px; color:#666;">The app works perfectly on these browsers. Firefox does not support the Web Speech API.</p>
+          <button onclick="location.reload()" style="margin-top:30px; padding:12px 28px; font-size:16px; background:#2c5f8a; color:white; border:none; border-radius:50px; cursor:pointer;">Try Again</button>
         </div>
       </div>
     `;
-    throw new Error("This app requires Google Chrome");
+    throw new Error("Browser does not support Speech Recognition API");
   }
 
   // ================= WORD LIST (replaced with your exact list) =================
