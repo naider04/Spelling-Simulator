@@ -105,7 +105,7 @@
   <h1>🔊 Spell the word</h1>
   <div id="word"></div>
   <div id="heard">🎤 Listening...</div>
-  <button onclick="resetListening()">🔄 Delete </button>
+  <button onclick="resetListening()">🔄 New Word / Reset</button>
 </div>
 
 <script>
@@ -397,20 +397,22 @@
   
   // ================= RESET FUNCTION =================
   function resetListening() {
-  resetGuard = true;
-  if (recognition) {
-    try { recognition.stop(); } catch(e) {}
-    listeningActive = false;
+    resetGuard = true;
+    if (recognition) {
+      try { recognition.stop(); } catch(e) {}
+      listeningActive = false;
+    }
+    
+    heardElement.innerText = "🔄 Resetting...";
+    currentWord = getRandomWord();
+    wordElement.innerText = currentWord;
+    
+    setTimeout(() => {
+      resetGuard = false;
+      listeningActive = false;
+      startListening();
+    }, 280);
   }
-  
-  heardElement.innerText = "🔄 Resetting...";
-  
-  setTimeout(() => {
-    resetGuard = false;
-    listeningActive = false;
-    startListening();
-  }, 280);
-}
   
   // ================= START THE APP =================
   startListening();
