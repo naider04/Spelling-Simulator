@@ -341,7 +341,7 @@
   let resetGuard = false;
 
   // ----- MISTAKE HISTORY (array of strings) -----
-  let mistakeLog = [];   // store each incorrect spoken phrase (raw or normalized)
+  let attemptHistory = []; // 🔥 stores last attempts globally
   
   const wordElement = document.getElementById("word");
   const heardElement = document.getElementById("heard");
@@ -355,21 +355,20 @@
   // Render the mis-spelling list (one under another, resets on correct)
   function renderMistakeLog() {
     misspellListEl.innerHTML = "";
-    if (mistakeLog.length === 0) {
-      const emptyLi = document.createElement("li");
-      emptyLi.className = "empty-log";
-      emptyLi.innerText = "✅ No mistakes — speak clearly!";
-      misspellListEl.appendChild(emptyLi);
+
+    if (attemptHistory.length === 0) {
+      const li = document.createElement("li");
+      li.className = "empty-log";
+      li.innerText = "No attempts yet";
+      misspellListEl.appendChild(li);
       return;
     }
-    // show each mistake with a small icon
-    mistakeLog.forEach((mistakeText, idx) => {
+
+    attemptHistory.slice(-3).forEach(item => {
       const li = document.createElement("li");
-      li.innerHTML = `<span class="badge-mistake">✘ ${idx+1}</span> <span style="flex:1; word-break:break-word;">“${mistakeText}”</span>`;
+      li.innerText = `${item.status} ${item.text}`;
       misspellListEl.appendChild(li);
     });
-    // auto scroll to bottom
-    misspellListEl.scrollTop = misspellListEl.scrollHeight;
   }
 
   // Clear mistake history when correct answer occurs
@@ -379,11 +378,19 @@
   }
 
   // Add a new mis-spelling to the log (called when attempt fails)
-  function addMisSpelling(spokenPhrase) {
-    if (!spokenPhrase || spokenPhrase.trim() === "") return;
-    // we store a cleaned version but keep original for readability
-    let displayText = spokenPhrase.length > 55 ? spokenPhrase.substring(0, 52) + "..." : spokenPhrase;
-    mistakeLog.push(displayText);
+  function addAttempt(text, isCorrect) {
+    if (!text) return;
+
+    attemptHistory.push({
+      text: text,
+      status: isCorrect ? "✅" : "❌"
+    });
+
+    // keep array from growing forever
+    if (attemptHistory.length > 50) {
+      attemptHistory.shift();
+    }
+
     renderMistakeLog();
   }
 
@@ -440,6 +447,33 @@
     return false;
   }
 
+  function handleUnPattern(transcript, targetWord) {
+    const lowerTarget = targetWord.toLowerCase();
+
+    if (!lowerTarget.startsWith('un')) return false;
+
+    // match: "you and d e r s t a n d"
+    const match = transcript.match(/^\s*you\s+and\s+(.+)$/i);
+
+    if (match) {
+      let after = match[1].trim();
+
+      let letters = after
+        .split(/\s+/)
+        .map(p => p[0].toLowerCase())
+        .join('');
+
+      let expected = lowerTarget.substring(2); // remove "un"
+
+      return compareLetterSequences(
+        letters.split(''),
+        expected.split('')
+      );
+  }
+
+  return false;
+  }
+
   function handleThePattern(transcript, targetWord) {
     const theMatch = transcript.match(/^\s*the\s+(.+)$/i);
     if (theMatch) {
@@ -479,6 +513,7 @@
       let lowerTgt = tgt.toLowerCase();
       if (normalizeText(cleanTranscriptFull) === lowerTgt) return true;
       if (lowerTgt.startsWith('im') && handleImPattern(cleanTranscriptFull, lowerTgt)) return true;
+      if (lowerTgt.startsWith('un') && handleUnPattern(cleanTranscriptFull, lowerTgt)) return true;
       if (handleThePattern(cleanTranscriptFull, lowerTgt)) return true;
       if (handleLetterByLetterSpelling(cleanTranscriptFull, lowerTgt)) return true;
       let decodedLetters = decodeLetterNames(cleanTranscriptFull);
@@ -504,6 +539,8 @@
 
   // ----- CORRECT HANDLER (resets mistake history, new word, auto-restart)-----
   function onCorrectSpelling() {
+    
+    addAttempt(currentWord, true);
     // clear mistake list because correct answer achieved
     resetMistakeHistory();
     heardElement.innerHTML = "✅ Perfect! Next word...";
@@ -535,7 +572,7 @@
     // spokenTranscript is the final transcript string (already cleaned but we keep raw)
     if (!spokenTranscript || spokenTranscript.trim() === "") return;
     // add to mistake log
-    addMisSpelling(spokenTranscript);
+    addAttempt(spokenTranscript, false);
     let hintMsg = getHintMessage(currentWord);
     heardElement.innerHTML = `❌ Not correct. ${hintMsg}`;
     liveTranscriptionElement.innerHTML = `⚠️ “${spokenTranscript}” — try again`;
