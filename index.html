@@ -397,22 +397,20 @@
   
   // ================= RESET FUNCTION =================
   function resetListening() {
-    resetGuard = true;
-    if (recognition) {
-      try { recognition.stop(); } catch(e) {}
-      listeningActive = false;
-    }
-    
-    heardElement.innerText = "🔄 Resetting...";
-    currentWord = getRandomWord();
-    wordElement.innerText = currentWord;
-    
-    setTimeout(() => {
-      resetGuard = false;
-      listeningActive = false;
-      startListening();
-    }, 280);
+  resetGuard = true;
+  if (recognition) {
+    try { recognition.stop(); } catch(e) {}
+    listeningActive = false;
   }
+  
+  heardElement.innerText = "🔄 Resetting...";
+  
+  setTimeout(() => {
+    resetGuard = false;
+    listeningActive = false;
+    startListening();
+  }, 280);
+}
   
   // ================= START THE APP =================
   startListening();
