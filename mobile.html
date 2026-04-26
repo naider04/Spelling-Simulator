@@ -36,7 +36,7 @@
     }
 
     #word {
-      font-size: 52px;
+      font-size: 31px;
       font-weight: 800;
       background: #0f2b3b;
       display: inline-block;
@@ -223,7 +223,7 @@
   }
 
   #word {
-    font-size: 42px;
+    font-size: 25px;
     padding: 12px 18px;
     letter-spacing: 3px;
   }
@@ -278,7 +278,7 @@
   <!-- MISSPELLING HISTORY (live feedback stack) -->
   <div class="attempts-panel">
     <div class="label-attempts">
-      📋 <span>Incorrect attempts</span>
+      📋 <span>History</span>
     </div>
     <ul id="misspellList">
       <li class="empty-log">✨ No mis-spellings yet. Speak to see attempts.</li>
@@ -348,6 +348,8 @@
   const liveTranscriptionElement = document.getElementById("liveTranscription");
   const misspellListEl = document.getElementById("misspellList");
 
+  const forceLetterMode = ["wisdom", "observe", "ambiguous"];
+
   function getRandomWord() {
     return words[Math.floor(Math.random() * words.length)];
   }
@@ -375,6 +377,21 @@
   function resetMistakeHistory() {
     mistakeLog = [];
     renderMistakeLog();
+  }
+
+  function isWholeWordSpeech(transcript) {
+    let words = transcript.trim().split(/\s+/);
+
+    // If user says ONE word → likely not spelling
+    if (words.length === 1) return true;
+
+    // If words exist but are long chunks (not single letters)
+    let longWords = words.filter(w => w.length > 1);
+
+    // If most chunks are real words → not spelling
+    if (longWords.length > words.length / 2) return true;
+
+    return false;
   }
 
   // Add a new mis-spelling to the log (called when attempt fails)
@@ -646,28 +663,66 @@
         let transcriptNormalized = spokenRaw.toLowerCase();
         heardElement.innerHTML = `👂 "${spokenRaw}"`;
 
-        const isCorrect = isSpellingMatch(transcriptNormalized, currentWord);
-        
-        if (isCorrect) {
-          // CORRECT: reset mistake history, get new word, auto-restart
+        // 🔥 FIRST: detect if user is saying the whole word
+        // 🔥 detect if it's REALLY a whole word (not disguised spelling)
+        let words = spokenRaw.trim().split(/\s+/);
+
+        // try extracting letters anyway
+        let extractedLetters = words.map(w => w[0]).join('');
+        let normalizedExtracted = extractedLetters.toLowerCase();
+        let target = currentWord.toLowerCase();
+
+        // ✅ If extracted letters match → ACCEPT (even if engine merged it)
+        if (
+          normalizedExtracted.length === target.length &&
+          compareLetterSequences(normalizedExtracted.split(''), target.split(''))
+        ) {
           if (recognition) {
-            recognition.stop(); // stop current session to avoid double calls
+            recognition.stop();
             listeningActive = false;
           }
           onCorrectSpelling();
-        } else {
-          // WRONG: store the spoken attempt into history (above transcription box)
-          onWrongSpelling(spokenRaw);
-          // After wrong attempt, we don't reset recognition; we restart it in onend to keep listening
-          // Manually stop and restart for clean new attempt session
+          return;
+        }
+
+        // ❌ ONLY reject if clearly a real word (not letters)
+        let lowerWord = currentWord.toLowerCase();
+        let skipWholeWordCheck = forceLetterMode.includes(lowerWord);
+
+        if (!skipWholeWordCheck && isWholeWordSpeech(spokenRaw)) {
+          addAttempt("Spell it letter by letter", false);
+
+          heardElement.innerHTML = "⚠️ You must spell the word";
+          liveTranscriptionElement.innerHTML = "";
+
           if (recognition) {
             try { recognition.stop(); } catch(e) {}
             listeningActive = false;
           }
-          // will restart after onend triggers
+
+          return;
+        }
+
+        // 🔥 THEN check correctness
+        const isCorrect = isSpellingMatch(transcriptNormalized, currentWord);
+        
+        if (isCorrect) {
+          if (recognition) {
+            recognition.stop();
+            listeningActive = false;
+          }
+          onCorrectSpelling();
+        } else {
+          onWrongSpelling(spokenRaw);
+
+          if (recognition) {
+            try { recognition.stop(); } catch(e) {}
+            listeningActive = false;
+          }
         }
       }
-    };
+
+    }; // ✅ CLOSE onresult HERE
 
     recognition.onerror = (e) => {
       console.warn(e.error);
