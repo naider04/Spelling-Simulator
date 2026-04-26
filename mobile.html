@@ -511,19 +511,32 @@
     let cleanTranscriptFull = transcript.toLowerCase().trim();
     for (let tgt of possibleTargets) {
       let lowerTgt = tgt.toLowerCase();
+
+      // 🔥 PRIORITY: extract first letters (fixes "psychology" issue)
+      let wordsOnly = cleanTranscriptFull.split(/\s+/);
+      let startIdx = (wordsOnly[0] === 'the') ? 1 : 0;
+      let extracted = wordsOnly.slice(startIdx).map(w => w[0]).join('');
+
+      if (
+        extracted.length === lowerTgt.length &&
+        compareLetterSequences(extracted.split(''), lowerTgt.split(''))
+      ) return true;
+
+      // existing checks below
       if (normalizeText(cleanTranscriptFull) === lowerTgt) return true;
       if (lowerTgt.startsWith('im') && handleImPattern(cleanTranscriptFull, lowerTgt)) return true;
       if (lowerTgt.startsWith('un') && handleUnPattern(cleanTranscriptFull, lowerTgt)) return true;
       if (handleThePattern(cleanTranscriptFull, lowerTgt)) return true;
       if (handleLetterByLetterSpelling(cleanTranscriptFull, lowerTgt)) return true;
+
       let decodedLetters = decodeLetterNames(cleanTranscriptFull);
       if (normalizeText(decodedLetters) === lowerTgt) return true;
+
       let spokenLettersNoSpaces = cleanTranscriptFull.replace(/\s+/g, '').toLowerCase();
-      if (spokenLettersNoSpaces.length === lowerTgt.length && compareLetterSequences(spokenLettersNoSpaces.split(''), lowerTgt.split(''))) return true;
-      let wordsOnly = cleanTranscriptFull.split(/\s+/);
-      let startIdx = (wordsOnly[0] === 'the') ? 1 : 0;
-      let extracted = wordsOnly.slice(startIdx).map(w => w[0]).join('');
-      if (extracted.length === lowerTgt.length && compareLetterSequences(extracted.split(''), lowerTgt.split(''))) return true;
+      if (
+        spokenLettersNoSpaces.length === lowerTgt.length &&
+        compareLetterSequences(spokenLettersNoSpaces.split(''), lowerTgt.split(''))
+      ) return true;
     }
     return false;
   }
