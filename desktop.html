@@ -94,6 +94,27 @@
       transition: 0.07s linear;
     }
 
+        .switch-version {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      font-size: 13px;
+      color: #2c5f8a;
+      background: rgba(255,255,255,0.8);
+      padding: 6px 12px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-weight: 600;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      backdrop-filter: blur(4px);
+      transition: 0.15s;
+      z-index: 999;
+    }
+
+    .switch-version:hover {
+      background: #e6eef7;
+    }
+
     button:active {
       transform: translateY(3px);
       box-shadow: 0 3px 0 #123456;
@@ -103,6 +124,8 @@
   </style>
 </head>
 <body>
+
+<a href="mobile.html" class="switch-version">📱 Mobile</a>
 <div class="container">
   <div class="status-badge">🎙️ SPELL & SPEAK</div>
   <h1>🔊 Spell the word</h1>
