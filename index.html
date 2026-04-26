@@ -96,24 +96,7 @@
       box-shadow: 0 3px 0 #123456;
     }
 
-    .info-note {
-      background: #fffde7;
-      margin-top: 25px;
-      font-size: 14px;
-      padding: 12px;
-      border-radius: 40px;
-      width: 90%;
-      margin-left: auto;
-      margin-right: auto;
-      color: #5e3a1c;
-      border-left: 6px solid #f4b942;
-    }
-
-    @media (max-width: 650px) {
-      #word { font-size: 42px; padding: 12px 20px; }
-      #heard { font-size: 22px; }
-      h1 { font-size: 1.8rem; }
-    }
+    /* Removed the info-note styles since we're deleting that block entirely */
   </style>
 </head>
 <body>
@@ -121,13 +104,8 @@
   <div class="status-badge">🎙️ SPELL & SPEAK</div>
   <h1>🔊 Spell the word</h1>
   <div id="word"></div>
-  <div id="heard">🎤 Listening... say the spelling</div>
+  <div id="heard">🎤 Listening...</div>
   <button onclick="resetListening()">🔄 New Word / Reset</button>
-  <div class="info-note">
-    💡 <strong>Smart spelling rules:</strong> Words starting with "T" (e.g., "time") → say <strong>"the i m e"</strong>.<br>
-    Words starting with "IM" (e.g., "important") → say <strong>"i am p o r t a n t"</strong>.<br>
-    Normal letters spoken individually (a, b, c...) also work perfectly.
-  </div>
 </div>
 
 <script>
@@ -146,7 +124,7 @@
     throw new Error("Blocked on mobile");
   }
 
-  // ================= WORD LIST (original + enriched) =================
+  // ================= WORD LIST (replaced with your exact list) =================
   const words = [
     "Accurate", "Acknowledgment", "Acquaintance", "Activity", "Adventure", "Always",
     "Ambiguous", "Answer", "Anxious", "Apprehensive", "Architecture", "Articulate",
@@ -199,21 +177,10 @@
   }
 
   // ---- ADVANCED SPELLING TRANSLATOR: CONVERT SPOKEN PHRASE -> EXPECTED SEQUENCE ----
-  // This function transforms phonetic user utterances like "the i m e" => "time"
-  // and "i am p o r t a n t" => "important". Additionally handles normal letter-by-letter.
-  // It preserves the original robust matching but FUSES phonetic groups intelligently.
   function normalizeSpokenPhraseToLetters(spokenRaw) {
-    // 1. lower case & trim extra spaces
     let phrase = spokenRaw.toLowerCase().trim();
-    // replace multiple spaces with single space
     phrase = phrase.replace(/\s+/g, ' ').trim();
     
-    // 2. special pattern: "the" as T-replacement for words starting with T? Actually we need to map "the X" to letter T + rest
-    // Example: "the i m e" => "t i m e". But we must identify: If user says "the" as first token and then letters, treat "the" as letter 't'
-    // Also handle "i am" -> "i m" ??? Wait rule: "important" -> "i am p o r t a n t". Means: "i am" actually represents letters "i" and "m" ?
-    // Actually "important": first two letters are "i" and "m". User says "i am" together as two separate sounds -> maps to "i" then "m".
-    // So we decode:
-
     const tokens = phrase.split(/\s+/);
     let decodedLetters = [];
     
@@ -221,38 +188,36 @@
     while (i < tokens.length) {
       let token = tokens[i];
       
-      // ----- handle "the" as letter 't' (T rule) -----
+      // "the" as letter 't'
       if (token === "the") {
         decodedLetters.push('t');
         i++;
         continue;
       }
       
-      // ----- handle "i am" sequence: two tokens "i" followed by "am" -----
-      // we look for "i" then next token is "am"
+      // "i am" sequence -> letters 'i' and 'm'
       if (token === "i" && i+1 < tokens.length && tokens[i+1] === "am") {
         decodedLetters.push('i');
         decodedLetters.push('m');
-        i += 2;  // skip both "i" and "am"
+        i += 2;
         continue;
       }
       
-      // ----- handle standalone "am" (if appears alone perhaps as mistake) maps to "m" -----
+      // standalone "am" -> 'm'
       if (token === "am") {
         decodedLetters.push('m');
         i++;
         continue;
       }
       
-      // ----- handle single letters (a, b, c, ...) or even double like "bee" -> b, "see"->c but we keep standard mapping
-      // we also accept "double u" but not needed. For robust, if token length === 1 and is letter, take it.
+      // single letters
       if (token.length === 1 && /[a-z]/i.test(token)) {
         decodedLetters.push(token);
         i++;
         continue;
       }
       
-      // ----- common letter names: "bee" -> b, "cee"->c, "dee"->d, "gee"->g, "jay"->j, "kay"->k, "pee"->p, "cue"->q, "are"->r, "ess"->s, "tee"->t, "you"->u, "vee"->v, "double u"->w, "ex"->x, "why"->y, "zee"/"zed"->z
+      // common letter names
       const letterMap = {
         "bee": "b", "cee": "c", "dee": "d", "gee": "g", "jay": "j", "kay": "k",
         "pee": "p", "cue": "q", "are": "r", "ess": "s", "tee": "t", "you": "u",
@@ -266,37 +231,25 @@
         continue;
       }
       
-      // fallback: if token is longer but maybe misrecognized single character like "a."? but use first char if alphabet
+      // fallback: first character
       if (token.length > 0 && /[a-z]/i.test(token[0])) {
         decodedLetters.push(token[0]);
         i++;
         continue;
       }
       
-      // else ignore unknown token
       i++;
     }
     
-    // Join decoded letters into a continuous string
     return decodedLetters.join('');
   }
-  
-  // ===== IMPROVED COMPARISON that preserves the original phonetic confusion groups but adds semantic phrase expansion =====
-  // The original core comparison (isCloseEnough) compared strings of equal length char-by-char with confusion groups.
-  // We will upgrade by first converting BOTH the spoken phrase (via normalizeSpokenPhraseToLetters) AND we also need
-  // to compare with target word letters while allowing the original lenient consonant confusion. But MOST IMPORTANT: 
-  // we should allowed transformed spoken version to match the target directly (case-insensitive).
-  // Additionally, we must not break existing perfect behavior for normal spelling like "c a t". 
-  // So we create enhanced matcher: firstly try advanced phrase decoding, then run original fuzzy same-length comparision,
-  // and also preserve variant list.
   
   function toLetters(str) {
     return str.toLowerCase().replace(/\s+/g, "").split("");
   }
   
-  // original fuzzy matcher (preserved exactly but we will use on decoded form)
+  // original fuzzy matcher with confusion groups
   function isCloseEnough(spokenLettersArray, targetLettersArray) {
-    // spokenLettersArray and targetLettersArray already as array of chars same length
     const groups = [
       ["p", "b"],
       ["v", "d", "b"],
@@ -314,13 +267,12 @@
     return true;
   }
   
-  // main matching engine: tries original raw transcript against variants with classic method AND tries new phonetic decoding
+  // main matching engine
   function isSpellingMatch(transcriptRaw, targetWord) {
-    let possibleTargets = variants[targetWord] || [targetWord];
+    let possibleTargets = variants[targetWord.toLowerCase()] || [targetWord];
     transcriptRaw = transcriptRaw.toLowerCase().trim();
     
-    // First try direct original match using original toLetters + isCloseEnough on raw transcript (no advanced decoding)
-    // This preserves original awesome behavior for normal letter sequences (e.g., "c a t")
+    // First try direct original matching (preserves awesome default behavior)
     for (let tgt of possibleTargets) {
       const targetLetters = toLetters(tgt);
       const spokenRawLetters = toLetters(transcriptRaw);
@@ -331,17 +283,14 @@
       }
     }
     
-    // ---- NEW: Phonetic rule expansion "the X" / "i am X" ---
-    // Normalize spoken phrase using special rules: "the i m e" => "time", "i am p o r t a n t" => "important"
+    // Advanced phonetic decoding for "the i m e" and "i am p o r t a n t"
     const decodedSpelling = normalizeSpokenPhraseToLetters(transcriptRaw);
     if (decodedSpelling.length > 0) {
       for (let tgt of possibleTargets) {
         const targetClean = tgt.toLowerCase();
-        // direct match after decode
         if (decodedSpelling === targetClean) {
           return true;
         }
-        // Edge: maybe decode produced different length due to omitted letters? but we also try fuzzy character-by-character with original confusion groups
         const decodedChars = decodedSpelling.split('');
         const targetChars = targetClean.split('');
         if (decodedChars.length === targetChars.length) {
@@ -352,37 +301,29 @@
       }
     }
     
-    // Additional fallback: check if transcript directly contains sequence "the" plus letters concatenated manually smarter?
-    // example: "the i m e" -> our decoder already handles but maybe extra spaces. re-run smart extraction:
-    // Another pattern: words starting with 't' and user starts with "the " we already did full decode. works.
-    // For edge: explicit rule: does target start with "t" and transcriptRaw includes "the" as separate token before letters?
-    // But normalizeSpokenPhraseToLetters already covers primary. We'll also perform a regex-based quick check for words starting with t or im.
+    // Extra direct rules for words starting with T or IM
     for (let tgt of possibleTargets) {
-      if (tgt.startsWith('t') && transcriptRaw.match(/^\s*the\s+/i)) {
-        // reconstruct: remove leading "the" and then join remaining letters normally, compare with original target
+      const lowerTgt = tgt.toLowerCase();
+      if (lowerTgt.startsWith('t') && transcriptRaw.match(/^\s*the\s+/i)) {
         let afterThe = transcriptRaw.replace(/^\s*the\s+/i, '').trim();
         let rawLetters = afterThe.split(/\s+/).map(part => part[0]).join('');
-        if (rawLetters.toLowerCase() === tgt.substring(1).toLowerCase()) {
+        if (rawLetters.toLowerCase() === lowerTgt.substring(1)) {
           return true;
         }
-        // fuzzy version
-        let tgtWithoutFirst = tgt.substring(1).toLowerCase();
-        if (rawLetters.toLowerCase() === tgtWithoutFirst) return true;
       }
-      if (tgt.startsWith('im') && transcriptRaw.match(/^\s*i\s+am\s+/i)) {
+      if (lowerTgt.startsWith('im') && transcriptRaw.match(/^\s*i\s+am\s+/i)) {
         let afterIam = transcriptRaw.replace(/^\s*i\s+am\s+/i, '').trim();
         let lettersAfter = afterIam.split(/\s+/).map(part => part[0]).join('');
-        let expectedRemaining = tgt.substring(2).toLowerCase();
-        if (lettersAfter.toLowerCase() === expectedRemaining) return true;
-        // also check with full decode
+        if (lettersAfter.toLowerCase() === lowerTgt.substring(2)) {
+          return true;
+        }
       }
-      // handle words starting with "im" but maybe user says "i am" and then letters with spaces: already caught by normalizeSpokenPhraseToLetters
     }
     
     return false;
   }
   
-  // ================= SPEECH RECOGNITION WITH NEW MATCHING ENGINE =================
+  // ================= SPEECH RECOGNITION =================
   function startListening() {
     if (listeningActive && recognition) {
       try { recognition.stop(); } catch(e) {}
@@ -395,7 +336,7 @@
     listeningActive = true;
     
     recognition.onstart = () => {
-      heardElement.innerText = "🎤 Listening... (say letters or phrases like 'the i m e')";
+      heardElement.innerText = "🎤 Listening...";
     };
     
     recognition.onresult = (event) => {
@@ -405,19 +346,15 @@
       }
       transcript = transcript.toLowerCase().trim();
       
-      // Display what the user said
       heardElement.innerHTML = "👂 \"" + transcript + "\"";
       
-      // Check using the advanced flexible matcher that understands "the i m e" & "i am p o r t a n t"
       let isValid = isSpellingMatch(transcript, currentWord);
       
       if (isValid) {
-        heardElement.innerHTML = "✅ Correct! Amazing spelling! → Next word";
-        // Move to new word
+        heardElement.innerHTML = "✅ Correct!";
         currentWord = getRandomWord();
         wordElement.innerText = currentWord;
         
-        // stop recognition and restart with fresh session
         if (recognition) {
           recognition.stop();
           listeningActive = false;
@@ -425,17 +362,6 @@
         setTimeout(() => {
           startListening();
         }, 380);
-      } else {
-        // keep listening, no auto advance, but show subtle hint only if too many failures? but optional.
-        // just keep current status, not invasive
-        if (!heardElement.innerHTML.includes("✅")) {
-          // but if it already showing correct? ignore.
-          setTimeout(() => {
-            if (heardElement.innerHTML !== "✅ Correct! Amazing spelling! → Next word" && !heardElement.innerHTML.includes("✅")) {
-              // we could set a gentle reminder but not needed.
-            }
-          }, 100);
-        }
       }
     };
     
@@ -446,7 +372,7 @@
       } else if (e.error === 'audio-capture') {
         heardElement.innerHTML = "🎤 Microphone error → allow mic and reset";
       } else {
-        heardElement.innerHTML = "🎤 Listening... say spelling";
+        heardElement.innerHTML = "🎤 Listening...";
       }
       listeningActive = false;
       setTimeout(() => {
@@ -456,7 +382,6 @@
     
     recognition.onend = () => {
       if (listeningActive === true && !resetGuard) {
-        // auto restart if ended unexpectedly but still active flag
         setTimeout(() => {
           if (listeningActive && !resetGuard) {
             try { startListening(); } catch(e) {}
@@ -470,7 +395,7 @@
     recognition.start();
   }
   
-  // ================= RESET FUNCTION (keeps original behavior) =================
+  // ================= RESET FUNCTION =================
   function resetListening() {
     resetGuard = true;
     if (recognition) {
@@ -478,8 +403,7 @@
       listeningActive = false;
     }
     
-    heardElement.innerText = "🔄 Resetting... getting new word";
-    // generate potentially new word but keep the same? we can fresh random
+    heardElement.innerText = "🔄 Resetting...";
     currentWord = getRandomWord();
     wordElement.innerText = currentWord;
     
