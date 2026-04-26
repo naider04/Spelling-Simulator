@@ -124,6 +124,28 @@
     throw new Error("Blocked on mobile");
   }
 
+  // ===== CHECK FOR FIREFOX / BROWSER SUPPORT =====
+  if (!(window.SpeechRecognition || window.webkitSpeechRecognition)) {
+    document.body.innerHTML = `
+      <div style="text-align:center; margin-top:80px; font-family:system-ui, sans-serif; max-width:600px; margin-left:auto; margin-right:auto; padding:20px;">
+        <div style="background:#fff3e0; border-radius:30px; padding:40px 20px; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
+          <h1 style="color:#d32f2f;">🌐 Browser Not Supported</h1>
+          <p style="font-size:18px; margin:20px 0;">Your browser (Firefox) does not support voice recognition for this app.</p>
+          <p style="font-size:16px; margin:20px 0;">Please use one of these browsers instead:</p>
+          <ul style="text-align:left; display:inline-block; margin:20px auto;">
+            <li>✅ <strong>Google Chrome</strong></li>
+            <li>✅ <strong>Microsoft Edge</strong></li>
+            <li>✅ <strong>Safari</strong> (Mac/iPad)</li>
+            <li>✅ <strong>Opera</strong></li>
+          </ul>
+          <p style="margin-top:30px; font-size:14px; color:#666;">The app works perfectly on these browsers. Firefox does not support the Web Speech API.</p>
+          <button onclick="location.reload()" style="margin-top:30px; padding:12px 28px; font-size:16px; background:#2c5f8a; color:white; border:none; border-radius:50px; cursor:pointer;">Try Again</button>
+        </div>
+      </div>
+    `;
+    throw new Error("Browser does not support Speech Recognition API");
+  }
+
   // ================= WORD LIST (replaced with your exact list) =================
   const words = [
     "Accurate", "Acknowledgment", "Acquaintance", "Activity", "Adventure", "Always",
