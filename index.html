@@ -36,6 +36,20 @@
 
 <script>
 
+  // ===== BLOCK MOBILE USERS =====
+function isMobile() {
+  return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+}
+
+if (isMobile()) {
+  document.body.innerHTML = `
+    <h1>🚫 This website is not available on phones</h1>
+    <p>Please open it on a computer for the best experience.</p>
+  `;
+  throw new Error("Blocked on mobile");
+}
+
+
 // ================= WORD LIST =================
 const words = [
   "accurate","acknowledgment","acquaintance","activity","adventure","always",
