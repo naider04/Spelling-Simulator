@@ -105,7 +105,7 @@
   <h1>🔊 Spell the word</h1>
   <div id="word"></div>
   <div id="heard">🎤 Listening...</div>
-  <button onclick="resetListening()">🔄 New Word / Reset</button>
+  <button onclick="resetListening()">🔄 Delete </button>
 </div>
 
 <script>
@@ -125,7 +125,7 @@
   }
 
   // ================= WORD LIST (replaced with your exact list) =================
-   const words = [
+  const words = [
     "Accurate", "Acknowledgment", "Acquaintance", "Activity", "Adventure", "Always",
     "Ambiguous", "Answer", "Anxious", "Apprehensive", "Architecture", "Articulate",
     "Assertive", "Assimilate", "Astonishing", "Autonomous", "Balance", "Benevolent",
@@ -153,6 +153,7 @@
     "Taxonomy", "Teacher", "Think", "Travel", "Tree", "Unbelievable", "Unnecessary",
     "Useful", "Vacation", "Wash", "Water", "Welcome", "Wisdom", "Yesterday"
   ];
+
   // ================= VARIANTS (original spelling variations) =================
   const variants = {
     "acknowledgment": ["acknowledgment","acknowledgement"],
@@ -396,22 +397,20 @@
   
   // ================= RESET FUNCTION =================
   function resetListening() {
-    resetGuard = true;
-    if (recognition) {
-      try { recognition.stop(); } catch(e) {}
-      listeningActive = false;
-    }
-    
-    heardElement.innerText = "🔄 Resetting...";
-    currentWord = getRandomWord();
-    wordElement.innerText = currentWord;
-    
-    setTimeout(() => {
-      resetGuard = false;
-      listeningActive = false;
-      startListening();
-    }, 280);
+  resetGuard = true;
+  if (recognition) {
+    try { recognition.stop(); } catch(e) {}
+    listeningActive = false;
   }
+  
+  heardElement.innerText = "🔄 Resetting...";
+  
+  setTimeout(() => {
+    resetGuard = false;
+    listeningActive = false;
+    startListening();
+  }, 280);
+}
   
   // ================= START THE APP =================
   startListening();
